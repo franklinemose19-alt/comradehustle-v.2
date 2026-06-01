@@ -1,5 +1,5 @@
 
- AI Studio automatically injects this at runtime from user secrets.
+ I Studio automatically injects this at runtime from user secrets.
 Users configure this via the Secrets panel in the AI 
 
  APP_URL: The URL where this applet is hosted.
