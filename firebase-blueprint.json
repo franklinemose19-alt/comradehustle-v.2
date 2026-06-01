@@ -1,0 +1,259 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Plus, Filter, ArrowLeft, Clock, MapPin, Tag, ShieldCheck, Briefcase } from 'lucide-react';
+import { Job, JobStatus } from '../types';
+
+// Mock data for initial UI
+const MOCK_JOBS: Job[] = [
+  {
+    id: '1',
+    employerId: 'e1',
+    title: 'Assignment Writing: Computer Science',
+    description: 'Looking for someone to help with a React and Node.js assignment. Needs to be done by Friday.',
+    budget: 2500,
+    category: 'Writing',
+    deadline: '2026-06-05',
+    campus: 'UON Main Campus',
+    attachments: [],
+    urgent: true,
+    status: 'active',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: '2',
+    employerId: 'e2',
+    title: 'Photography for Hostel Party',
+    description: 'Need a photographer for 3 hours this weekend. Bring your own gear.',
+    budget: 5000,
+    category: 'Photography',
+    deadline: '2026-06-07',
+    campus: 'JKUAT Main',
+    attachments: [],
+    urgent: false,
+    status: 'active',
+    createdAt: new Date().toISOString(),
+  }
+];
+
+export const JobBoard: React.FC = () => {
+  const [view, setView] = useState<'feed' | 'create' | 'details'>('feed');
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+
+  const handleJobClick = (job: Job) => {
+    setSelectedJob(job);
+    setView('details');
+  };
+
+  return (
+    <div className="space-y-8">
+      {view === 'feed' && (
+        <>
+          <header className="flex items-center justify-between">
+            <h1 className="text-4xl font-extrabold tracking-tight text-white uppercase italic">
+              Service <span className="text-blue-400">Gigs</span>
+            </h1>
+            <button 
+              onClick={() => setView('create')}
+              className="p-4 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-500/20 active:scale-95 transition-transform"
+            >
+              <Plus size={24} />
+            </button>
+          </header>
+
+          <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+            {['All', 'Writing', 'Design', 'Errands', 'Coding'].map((cat) => (
+              <button 
+                key={cat} 
+                className="px-6 py-3 bg-[#111114] border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white hover:border-white/10 transition-all whitespace-nowrap"
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-5">
+            {MOCK_JOBS.map((job) => (
+              <JobCard key={job.id} job={job} onClick={() => handleJobClick(job)} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {view === 'create' && (
+        <CreateJobView onBack={() => setView('feed')} />
+      )}
+
+      {view === 'details' && selectedJob && (
+        <JobDetailsView job={selectedJob} onBack={() => setView('feed')} />
+      )}
+    </div>
+  );
+};
+
+const JobCard: React.FC<{ job: Job; onClick: () => void }> = ({ job, onClick }) => {
+  return (
+    <motion.div
+      whileHover={{ y: -4, scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className="group p-6 bg-[#111114] border border-white/5 rounded-[2.5rem] shadow-xl hover:bg-white/5 transition-all duration-300 cursor-pointer relative overflow-hidden"
+    >
+      <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+         <Briefcase size={80} className="text-blue-400 rotate-12" />
+      </div>
+      <div className="relative z-10">
+        <div className="flex justify-between items-start mb-4">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 bg-blue-400/10 border border-blue-400/20 px-3 py-1 rounded-full shadow-lg">
+            {job.category}
+          </span>
+          <div className="text-right">
+            <span className="text-lg font-mono font-bold text-white tracking-tighter">
+              KES {job.budget.toLocaleString()}
+            </span>
+            <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mt-0.5">Budgeted Escrow</p>
+          </div>
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{job.title}</h3>
+        <p className="text-slate-400 text-xs mb-6 line-clamp-2 leading-relaxed font-medium">
+          {job.description}
+        </p>
+        
+        <div className="flex items-center gap-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <div className="flex items-center gap-1.5">
+            <Clock size={14} className="text-slate-600" />
+            <span>{job.deadline}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <MapPin size={14} className="text-slate-600" />
+            <span>{job.campus}</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const CreateJobView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+  return (
+    <div className="space-y-10">
+      <header className="flex items-center gap-6">
+        <button onClick={onBack} className="p-4 bg-[#111114] border border-white/5 rounded-2xl text-slate-400"><ArrowLeft size={20} /></button>
+        <h1 className="text-3xl font-extrabold text-white tracking-tight italic uppercase">Post <span className="text-blue-400">Gig</span></h1>
+      </header>
+      
+      <form className="space-y-8 bg-[#111114] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl">
+        <div className="space-y-3">
+          <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Gig Title</label>
+          <input 
+            type="text" 
+            placeholder="e.g. Graphic Designer for Student Union" 
+            className="w-full p-5 bg-[#0A0A0B] border border-white/5 rounded-2xl focus:border-blue-500/50 outline-none text-white text-sm font-medium"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Escrow Budget (KES)</label>
+            <input 
+              type="number" 
+              placeholder="0.00" 
+              className="w-full p-5 bg-[#0A0A0B] border border-white/5 rounded-2xl focus:border-blue-500/50 outline-none text-white font-mono font-bold"
+            />
+          </div>
+          <div className="space-y-3 relative">
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Category</label>
+            <select className="w-full p-5 bg-[#0A0A0B] border border-white/5 rounded-2xl focus:border-blue-500/50 outline-none text-white text-sm appearance-none cursor-pointer">
+              <option>Writing</option>
+              <option>Coding</option>
+              <option>Errands</option>
+              <option>Design</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Execution Details</label>
+          <textarea 
+            rows={4}
+            placeholder="Describe the task and requirements..." 
+            className="w-full p-5 bg-[#0A0A0B] border border-white/5 rounded-2xl focus:border-blue-500/50 outline-none text-white text-sm font-medium resize-none leading-relaxed"
+          />
+        </div>
+
+        <div className="p-6 bg-blue-500/5 rounded-[2rem] border border-blue-500/10 flex items-start gap-4">
+          <ShieldCheck className="text-blue-400 mt-1 shrink-0" size={24} />
+          <div>
+            <h4 className="font-bold text-white text-[11px] uppercase tracking-widest mb-1">Escrow Safety Node</h4>
+            <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
+              Payment is held securely and only released when the student confirms satisfactory delivery.
+            </p>
+          </div>
+        </div>
+
+        <button 
+          type="button"
+          className="w-full py-6 bg-blue-600 hover:bg-blue-500 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-blue-900/40 active:scale-95 transition-all"
+        >
+          Activate Gig Escrow
+        </button>
+      </form>
+    </div>
+  );
+};
+
+const JobDetailsView: React.FC<{ job: Job; onBack: () => void }> = ({ job, onBack }) => {
+  return (
+    <div className="space-y-10 pb-32">
+      <header className="flex items-center gap-6">
+        <button onClick={onBack} className="p-4 bg-[#111114] border border-white/5 rounded-2xl text-slate-400 transition-colors hover:text-white"><ArrowLeft size={20} /></button>
+        <h1 className="text-3xl font-extrabold text-white tracking-tight italic uppercase">Gig <span className="text-blue-400">Details</span></h1>
+      </header>
+
+      <div className="space-y-6">
+        <div className="bg-[#111114] border border-white/5 p-8 rounded-[3rem] shadow-2xl space-y-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl animate-pulse" />
+          <div className="flex justify-between items-start relative z-10">
+            <h2 className="text-3xl font-extrabold text-white leading-tight flex-1 tracking-tight">{job.title}</h2>
+            <div className="text-right ml-6">
+               <p className="text-3xl font-mono font-bold text-blue-400 tracking-tighter leading-none">KES {job.budget.toLocaleString()}</p>
+               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40 block mt-2">Escrow Locked</span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3 relative z-10 pt-4 border-t border-white/5">
+            <div className="flex items-center gap-2 px-4 py-2 bg-blue-400/10 border border-blue-400/20 rounded-full text-[9px] font-black uppercase tracking-widest text-blue-400">
+              <Tag size={14} />
+              <span>{job.category}</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400">
+              <Clock size={14} />
+              <span>Deadline: {job.deadline}</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400">
+              <MapPin size={14} />
+              <span>{job.campus}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#111114] border border-white/5 p-8 rounded-[2.5rem] space-y-4">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Project Scope</h3>
+          <p className="text-slate-400 text-sm leading-relaxed font-medium">
+            {job.description}
+          </p>
+        </div>
+
+        <div className="bg-[#111114] border border-white/5 p-8 rounded-[2.5rem] space-y-6">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Apply for Gig</h3>
+          <textarea 
+            placeholder="Why are you the best person for this task?" 
+            className="w-full p-6 bg-[#0A0A0B] border border-white/5 rounded-2xl text-white text-sm font-medium outline-none focus:border-blue-500/50 resize-none h-40 leading-relaxed"
+          />
+          <button className="w-full py-6 bg-blue-600 hover:bg-blue-500 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-blue-900/40 active:scale-95 transition-all">
+            Submit Application
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -1,0 +1,98 @@
+import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  Home, 
+  Search, 
+  Briefcase, 
+  ShoppingBag, 
+  Wallet, 
+  MessageSquare, 
+  User,
+  PlusCircle
+} from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+
+interface LayoutProps {
+  children: React.ReactNode;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
+  const { user } = useAuth();
+
+  const navItems = [
+    { id: 'home', icon: Home, label: 'Dashboard' },
+    { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace' },
+    { id: 'jobs', icon: Briefcase, label: 'Gigs' },
+    { id: 'discover', icon: Search, label: 'Discover' },
+    { id: 'wallet', icon: Wallet, label: 'Wallet' },
+    { id: 'chat', icon: MessageSquare, label: 'Messages' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#0A0A0B] text-slate-200 font-sans selection:bg-cyan-500/30 selection:text-white">
+      {/* Immersive Header */}
+      <nav className="h-20 px-6 flex items-center justify-between border-b border-white/5 bg-[#0A0A0B]/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="flex items-center gap-3" onClick={() => onTabChange('home')}>
+          <div className="w-9 h-9 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <span className="text-lg font-bold tracking-tight text-white cursor-pointer select-none">
+            Comrade<span className="text-cyan-400">Hustle</span>
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="text-right hidden sm:block">
+            <p className="text-[9px] uppercase tracking-widest text-white/40 font-bold">Escrow Active</p>
+            <p className="text-sm font-mono font-bold text-emerald-400">KES 8,400.00</p>
+          </div>
+          <div 
+            onClick={() => onTabChange('profile')}
+            className={`w-10 h-10 rounded-full border-2 p-0.5 cursor-pointer transition-all ${activeTab === 'profile' ? 'border-cyan-500 animate-pulse' : 'border-white/10 opacity-70'}`}
+          >
+            <div className="w-full h-full rounded-full bg-gradient-to-br from-slate-700 to-slate-900 border border-white/10 overflow-hidden">
+              <img src={user?.photoURL || ''} alt="Profile" className="w-full h-full object-cover" />
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="pb-32 pt-6 px-4 sm:px-6 max-w-lg mx-auto">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, scale: 0.98, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 1.02, y: -10 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </main>
+
+      {/* Floating Bottom Navigation (Immersive Style) */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-black/60 border border-white/10 backdrop-blur-xl p-1.5 rounded-2xl shadow-2xl z-50">
+        {navItems.map((item) => {
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onTabChange(item.id)}
+              className={`relative px-4 py-2 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all duration-300 ${
+                isActive 
+                  ? 'bg-white text-black shadow-lg scale-105' 
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};

@@ -1,0 +1,276 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ShoppingCart, Plus, ArrowLeft, Search, Filter, ShoppingBag, MapPin, ShieldCheck } from 'lucide-react';
+import { Product } from '../types';
+
+const MOCK_PRODUCTS: Product[] = [
+  {
+    id: 'p1',
+    sellerId: 's1',
+    title: 'iPhone 13 Pro - 128GB',
+    description: 'Perfect condition, 90% battery health. Comes with original box and cable.',
+    images: ['https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=400&auto=format'],
+    price: 65000,
+    quantity: 1,
+    condition: 'used',
+    campus: 'UON Main',
+    deliveryOptions: 'Pick up at Hall 9',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'p2',
+    sellerId: 's2',
+    title: 'Calculus Early Transcendentals',
+    description: 'Latest edition, very helpful for first year engineering students.',
+    images: ['https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&auto=format'],
+    price: 1500,
+    quantity: 5,
+    condition: 'new',
+    campus: 'JKUAT',
+    deliveryOptions: 'Free delivery on campus',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'p3',
+    sellerId: 's3',
+    title: 'Noise Cancelling Headphones',
+    description: 'Sony WH-1000XM4. 6 months old, excellent for library study sessions.',
+    images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&auto=format'],
+    price: 22000,
+    quantity: 1,
+    condition: 'refurbished',
+    campus: 'Kenyatta University',
+    deliveryOptions: 'Met at Gate A',
+    createdAt: new Date().toISOString(),
+  }
+];
+
+export const Marketplace: React.FC = () => {
+  const [view, setView] = useState<'feed' | 'details' | 'cart' | 'create'>('feed');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [cartCount, setCartCount] = useState(0);
+
+  return (
+    <div className="space-y-8">
+      {view === 'feed' && (
+        <>
+          <header className="flex items-center justify-between">
+            <h1 className="text-4xl font-extrabold tracking-tight text-white uppercase italic">
+              Market<span className="text-emerald-400">Place</span>
+            </h1>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setView('cart')}
+                className="relative p-4 bg-[#111114] border border-white/5 rounded-2xl shadow-2xl text-slate-400 hover:text-white transition-colors"
+              >
+                <ShoppingCart size={22} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-6 h-6 bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#0A0A0B] animate-bounce">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+              <button 
+                onClick={() => setView('create')}
+                className="p-4 bg-emerald-600 text-white rounded-2xl shadow-xl shadow-emerald-500/20 active:scale-95 transition-transform"
+              >
+                <Plus size={22} />
+              </button>
+            </div>
+          </header>
+
+          <div className="relative group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors" size={20} />
+            <input 
+              type="text" 
+              placeholder="Search products..." 
+              className="w-full pl-14 pr-6 py-5 bg-[#111114] border border-white/5 focus:border-emerald-500/50 rounded-[2.5rem] outline-none shadow-2xl transition-all placeholder:text-slate-600 text-sm font-medium"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-5">
+            {MOCK_PRODUCTS.map((product) => (
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                onClick={() => {
+                  setSelectedProduct(product);
+                  setView('details');
+                }} 
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {view === 'details' && selectedProduct && (
+        <ProductDetailsView 
+          product={selectedProduct} 
+          onBack={() => setView('feed')} 
+          onAddToCart={() => {
+            setCartCount(prev => prev + 1);
+            setView('feed');
+          }}
+        />
+      )}
+
+      {view === 'cart' && <CartView onBack={() => setView('feed')} />}
+    </div>
+  );
+};
+
+const ProductCard: React.FC<{ product: Product; onClick: () => void }> = ({ product, onClick }) => {
+  return (
+    <motion.div
+      whileHover={{ y: -8, scale: 1.02 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      className="group flex flex-col bg-[#111114] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl transition-all cursor-pointer relative"
+    >
+      <div className="aspect-[1/1.2] w-full overflow-hidden relative">
+        <img 
+          src={product.images[0]} 
+          alt={product.title} 
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale-[0.2] group-hover:grayscale-0 shadow-inner"
+        />
+        <div className="absolute top-4 left-4 px-2.5 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] text-white">
+          {product.condition}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+      </div>
+      <div className="p-5 flex flex-col flex-1 relative z-10 -mt-10 bg-gradient-to-b from-transparent to-[#111114]">
+        <h3 className="font-bold text-sm mb-1 line-clamp-1 group-hover:text-emerald-400 transition-colors uppercase tracking-tight text-white/90">
+          {product.title}
+        </h3>
+        <p className="text-xl font-mono font-bold text-emerald-400 mt-2 tracking-tighter">
+          KES {product.price.toLocaleString()}
+        </p>
+        <div className="flex items-center gap-1.5 mt-3 text-[9px] font-black uppercase tracking-widest text-slate-500">
+          <MapPin size={10} className="text-slate-600" />
+          <span>{product.campus}</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const ProductDetailsView: React.FC<{ product: Product; onBack: () => void; onAddToCart: () => void }> = ({ product, onBack, onAddToCart }) => {
+  return (
+    <div className="space-y-8 pb-32">
+      <div className="relative rounded-[3rem] overflow-hidden aspect-[1/1] -mx-4 -mt-10 group shadow-2xl">
+        <img src={product.images[0]} alt={product.title} className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+        <button 
+          onClick={onBack}
+          className="absolute top-8 left-8 p-4 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl text-white hover:bg-white hover:text-black transition-all"
+        >
+          <ArrowLeft size={20} />
+        </button>
+      </div>
+
+      <div className="space-y-4 px-2">
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/20 shadow-lg">New Arrival</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-white/5 text-slate-500 px-3 py-1 rounded-full border border-white/5">{product.campus}</span>
+        </div>
+        <h1 className="text-4xl font-extrabold text-white leading-[1.1] tracking-tight">{product.title}</h1>
+        <p className="text-3xl font-mono font-bold text-emerald-400 tracking-tighter">
+          KES {product.price.toLocaleString()}
+        </p>
+      </div>
+
+      <div className="space-y-4 bg-[#111114] border border-white/5 rounded-[2.5rem] p-8">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Product Description</h3>
+        <p className="text-slate-400 text-sm leading-relaxed font-medium">
+          {product.description}
+        </p>
+      </div>
+
+      <div className="space-y-5 bg-[#111114] border border-white/5 rounded-[2.5rem] p-8">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Delivery Logistics</h3>
+        <div className="flex items-center gap-4 text-emerald-400">
+          <MapPin size={24} className="shrink-0" />
+          <p className="text-xs font-bold leading-relaxed text-white/80">{product.deliveryOptions}</p>
+        </div>
+      </div>
+
+      <div className="fixed bottom-10 left-4 right-4 flex gap-4 z-40 max-w-lg mx-auto">
+        <button 
+          onClick={onAddToCart}
+          className="flex-1 py-5 bg-[#111114] border border-white/10 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-white/5 transition-colors shadow-2xl backdrop-blur-xl"
+        >
+          Add to Cart
+        </button>
+        <button className="flex-[1.5] py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-emerald-900/40 active:scale-95 transition-transform">
+          Order Escrow Secure
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const CartView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+  return (
+    <div className="space-y-10">
+      <header className="flex items-center gap-6">
+        <button onClick={onBack} className="p-4 bg-[#111114] border border-white/5 rounded-2xl text-slate-400"><ArrowLeft size={20} /></button>
+        <h1 className="text-3xl font-extrabold text-white tracking-tight italic uppercase">Your <span className="text-emerald-400">Cart</span></h1>
+      </header>
+
+      <div className="space-y-4">
+        {[MOCK_PRODUCTS[0]].map((p, i) => (
+          <div key={i} className="bg-[#111114] border border-white/5 p-5 rounded-[2.5rem] flex gap-5 shadow-xl relative overflow-hidden group">
+            <div className="w-24 h-24 bg-slate-800 rounded-3xl overflow-hidden shrink-0 border border-white/5">
+              <img src={p.images[0]} className="w-full h-full object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-500" />
+            </div>
+            <div className="flex-1 min-w-0 py-1 flex flex-col justify-between">
+              <div>
+                <h4 className="font-bold text-sm text-white uppercase tracking-tight truncate">{p.title}</h4>
+                <p className="text-[10px] font-black uppercase text-slate-500 mt-1">{p.campus}</p>
+              </div>
+              <div className="flex items-end justify-between">
+                <div className="text-emerald-400 font-mono font-bold text-lg leading-none tracking-tighter">KES {p.price.toLocaleString()}</div>
+                <div className="flex items-center gap-4">
+                   <div className="flex items-center gap-3 px-3 py-1 bg-black/40 rounded-full border border-white/5">
+                     <button className="text-slate-500 hover:text-white font-black">-</button>
+                     <span className="text-[10px] font-black text-white">1</span>
+                     <button className="text-slate-400 hover:text-white font-black">+</button>
+                   </div>
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-4 right-4 animate-pulse">
+               <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-lg shadow-emerald-500/50" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="p-8 bg-[#111114] border border-white/5 rounded-[2.5rem] space-y-4 shadow-2xl relative">
+        <div className="absolute -top-10 -left-10 w-32 h-32 bg-emerald-500/5 blur-3xl" />
+        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-2">Order Summary</h3>
+        <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
+          <span className="text-slate-500">Cart Total</span>
+          <span className="text-white">KES 65,000</span>
+        </div>
+        <div className="flex justify-between text-xs font-bold uppercase tracking-widest pt-4 border-t border-white/5">
+          <span className="text-slate-500">Platform Handling</span>
+          <span className="text-white">KES 450</span>
+        </div>
+        <div className="pt-4 mt-2 flex justify-between items-end">
+          <div>
+             <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Final Payment</p>
+             <span className="text-3xl font-mono font-black text-white tracking-tighter leading-none">KES 65,450</span>
+          </div>
+          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-2xl border border-emerald-500/20">
+             <ShieldCheck size={24} />
+          </div>
+        </div>
+      </div>
+
+      <button className="w-full py-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-emerald-900/40 active:scale-95 transition-all">
+        Release Escrow Deposit via M-Pesa
+      </button>
+    </div>
+  );
+};
